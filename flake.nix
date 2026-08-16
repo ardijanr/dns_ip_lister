@@ -20,10 +20,10 @@
         { pkgs
         , name ? "dns-ip-lister"
         , domains ? null
-        , dnsServers ? [ "1.1.1.1" "8.8.8.8" "9.9.9.9" ]
+        , dnsServers ? [ ]
         , bind ? "0.0.0.0"
         , port ? 8080
-        , interval ? 3600
+        , interval ? 600
         }:
         let
           python = pkgs.python3.withPackages (ps: [
