@@ -47,3 +47,50 @@ in
   };
 }
 ```
+
+
+Router os script to import and add the rules to a block list:
+
+```
+:local r [/tool fetch url="http://<CHANGE-ME:python script server address>/" output=user as-value]
+:local data ($r->"data")
+:local nil
+
+:if (($r->"status") != "finished") do={
+    :return
+}
+
+:if ([:len $data] = 0) do={
+    :return
+}
+
+/ip firewall address-list remove [find where list="auto-ip-blocker"]
+/ipv6 firewall address-list remove [find where list="auto-ip-blocker"]
+
+:while ([:len $data] > 0) do={
+    :local pos [:find $data "\n"]
+    :local addr
+
+    :if ($pos = $nil) do={
+        :set addr $data
+        :set data ""
+    } else={
+        :set addr [:pick $data 0 $pos]
+        :set data [:pick $data ($pos + 1) [:len $data]]
+    }
+
+    :if (([:len $addr] > 0) && ([:pick $addr ([:len $addr] - 1)] = "\r")) do={
+        :set addr [:pick $addr 0 ([:len $addr] - 1)]
+    }
+
+    :if ([:len $addr] > 0) do={
+        :do {
+            /ip firewall address-list add list="auto-ip-blocker" address=$addr
+        } on-error={
+            /ipv6 firewall address-list add list="auto-ip-blocker" address=$addr
+        }
+    }
+}
+```
+
+You need to add a scheduler to schedule the job and the required address lists for it to save the data in.
